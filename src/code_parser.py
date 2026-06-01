@@ -21,7 +21,6 @@ blank_lines 统计空行
 """
 import os.path
 
-
 def parser(file_path):
     with open(file_path) as file:
         file_name = os.path.basename(file_path)

@@ -1,0 +1,40 @@
+# try to use stack
+class StackEmptyException(Exception):
+    pass
+
+class Stack:
+    def __init__(self):
+        self.dataList = []
+
+    def push(self, data):
+        self.dataList.append(data)
+
+    def pop(self):
+        if len(self.dataList) > 0:
+            return self.dataList.pop()
+        raise StackEmptyException()
+
+    def top(self):
+        if len(self.dataList) > 0:
+            return self.dataList[-1]
+        raise StackEmptyException()
+
+    def size(self):
+        return len(self.dataList)
+
+    def is_empty(self):
+        return self.size() == 0
+
+def main():
+    stack = Stack()
+    print(stack.is_empty())
+    stack.push(1)
+    print(stack.pop())
+    stack.push(1)
+    stack.push(2)
+    stack.push(3)
+    print(stack.top())
+    print(stack.is_empty())
+
+if __name__ == "__main__":
+    main()

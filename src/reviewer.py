@@ -1,24 +1,60 @@
+import json
+
 from langchain_community.vectorstores import Chroma
+from ai_client import embeddings
+from db_service import create_chat, append_message, get_chat
+from ai_client import get_agent
 
-from ai_client import agent
-from src.ai_client import embeddings
+SYSTEM_MSG_TEMPLATE = ("你是一个代码审查专家，帮助用户审查代码、优化代码、解答代码相关问题。"
+                       "如果用户的问题与代码无关，礼貌地拒绝并引导用户回到代码审查话题。"
+                       "根据以下编码规范审查代码\n{}")
+CODE_REVIEW_TEMPLATE = ("帮我审查下面的代码，内容是\n{}")
 
 
-def review(file_path):
-    file_content = read_file(file_path)
+async def review(code: str, model: str, chat_id: str = None):
+    # file_content = read_file(file_path)
+    file_content = code
+    standards_text = await get_standards(file_content)
+    llmMessages = [
+        {
+            "role": "system",
+            "content": SYSTEM_MSG_TEMPLATE.format(standards_text)
+        },
+    ]
+    agent = get_agent(model)
+    print('zmj code is {}'.format(code))
+    print('zmj chat_id {}'.format(chat_id))
+    if chat_id == None:
+        chat = create_chat(code[:30], code)
+        chat_id = chat.id
+        # 第一条先把 chat_id 发给前端
+        yield json.dumps({"type": "chat_id", "data": chat_id}) + "\n"
+        llmMessages.append({
+            "role": "user",
+            "content": CODE_REVIEW_TEMPLATE.format(code)
+        })
+    else:
+        append_message(chat_id, "user", code)
+        chatHistory = get_chat(chat_id).messages
+        print('zmj history is {}'.format(chatHistory))
+        llmMessages.extend(chatHistory)
+        print('zmj llmMessages is {}'.format(llmMessages))
+
+    assistant_message = ''
+    async for event in agent.astream_events({"messages": llmMessages}):
+        if event["event"] == "on_chat_model_stream":
+            content = event["data"]["chunk"].content
+            if content:
+                assistant_message = assistant_message + content
+                yield json.dumps({"type": "content", "data": content}) + "\n"
+    append_message(chat_id, "assistant", assistant_message)
+
+
+async def get_standards(file_content: str) -> str:
     vector_stores = Chroma(persist_directory="./chroma_db", embedding_function=embeddings)
     related_standards = vector_stores.similarity_search(file_content, k=3)
     standards_text = "\n".join([doc.page_content for doc in related_standards])
-    print(len(standards_text))
-    print(standards_text)
-    messages = [
-        {"role": "system", "content": "你是一个代码审查专家, 根据以下编码规范审查代码：\n{}".format(standards_text)},
-        {"role": "user", "content": "帮我审查下面的代码，文件路径是 {}, 内容是 {}".format(file_path, file_content)}
-    ]
-    response = agent.invoke({
-        "messages": messages
-    })
-    print(response["messages"][-1].content)
+    return standards_text
 
 
 def read_file(file_path):
