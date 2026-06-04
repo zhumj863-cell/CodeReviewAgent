@@ -2,9 +2,9 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
 from langchain_community.vectorstores import Chroma
 
-from src.ai_client import embeddings
+from ..llm.client import embeddings
 
-loader = TextLoader("coding_standards.md", encoding="utf-8")
+loader = TextLoader("../data/coding_standards.md", encoding="utf-8")
 docs = loader.load()
 
 splitter = RecursiveCharacterTextSplitter(

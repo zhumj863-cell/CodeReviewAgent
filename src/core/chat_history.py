@@ -1,4 +1,4 @@
-from db_service import db_list_chat, db_get_chat
+from ..db.service import db_list_chat, db_get_chat
 
 def get_chat_history():
     chat_histories = db_list_chat()

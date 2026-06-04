@@ -1,8 +1,4 @@
-from reviewer import review
-
-
-def sortFun(a):
-    return a == 0
+from core.reviewer import review
 
 def main():
     review("/Users/zmj/Documents/1.txt")

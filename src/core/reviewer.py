@@ -1,9 +1,9 @@
 import json
 
 from langchain_community.vectorstores import Chroma
-from ai_client import embeddings
-from db_service import db_create_chat, db_append_message, db_get_chat
-from ai_client import get_agent
+from ..llm.client import embeddings
+from ..db.service import db_create_chat, db_append_message, db_get_chat
+from ..llm.client import get_agent
 
 SYSTEM_MSG_TEMPLATE = ("你是一个代码审查专家，帮助用户审查代码、优化代码、解答代码相关问题。"
                        "如果用户的问题与代码无关，礼貌地拒绝并引导用户回到代码审查话题。"

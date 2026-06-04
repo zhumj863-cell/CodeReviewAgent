@@ -1,6 +1,6 @@
 from datetime import datetime
 from sqlalchemy.orm import sessionmaker
-from db import engine, ChatHistory
+from .models import engine, ChatHistory
 SessionLocal = sessionmaker(bind=engine)
 
 def db_create_chat(topic: str, content: str = None):

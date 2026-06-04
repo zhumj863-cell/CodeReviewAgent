@@ -3,8 +3,8 @@ from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from pydantic import BaseModel
-from reviewer import review
-from chat_history import get_chat_history, query_chat
+from ..core.reviewer import review
+from ..core.chat_history import get_chat_history, query_chat
 from dotenv import load_dotenv
 
 load_dotenv()
