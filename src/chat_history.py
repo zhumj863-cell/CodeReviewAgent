@@ -1,7 +1,7 @@
-from db_service import list_chat, get_chat
+from db_service import db_list_chat, db_get_chat
 
 def get_chat_history():
-    chat_histories = list_chat()
+    chat_histories = db_list_chat()
     result = []
     for chat in chat_histories:
         result.append({
@@ -12,7 +12,7 @@ def get_chat_history():
     return result
 
 def query_chat(chat_id: str):
-    chat = get_chat(chat_id)
+    chat = db_get_chat(chat_id)
     return {
         "topic": chat.topic,
         "createTime": chat.create_time,

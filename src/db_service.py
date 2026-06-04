@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 from db import engine, ChatHistory
 SessionLocal = sessionmaker(bind=engine)
 
-def create_chat(topic: str, content: str = None):
+def db_create_chat(topic: str, content: str = None):
     with SessionLocal() as session:
         new_msg = {"role": "user", "content": content}
         chat = ChatHistory(topic=topic, messages=[new_msg])
@@ -13,7 +13,7 @@ def create_chat(topic: str, content: str = None):
         session.refresh(chat)
         return chat
 
-def append_message(chat_id: str, role: str, content: str):
+def db_append_message(chat_id: str, role: str, content: str):
     with SessionLocal() as session:
         chat = session.query(ChatHistory).filter_by(id=chat_id).first()
         if not chat:
@@ -25,10 +25,10 @@ def append_message(chat_id: str, role: str, content: str):
         session.refresh(chat)
         return chat
 
-def get_chat(chat_id: str):
+def db_get_chat(chat_id: str):
     with SessionLocal() as session:
         return session.query(ChatHistory).filter_by(id=chat_id).first()
 
-def list_chat():
+def db_list_chat():
     with SessionLocal() as session:
         return session.query(ChatHistory).order_by(ChatHistory.update_time.desc()).all()
