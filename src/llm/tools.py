@@ -1,53 +1,33 @@
+import subprocess
+import tempfile
+
 from langchain_core.tools import tool
-TOOLS = [
-    {
-        "type": "function",
-        "function": {
-            "name": "count_lines",
-            "description": "统计文件行数",
-            "parameters":  {
-                "type": "object",
-                "properties": {
-                    "file_path": {
-                        "type": "string",
-                        "description": "文件路径",
-                    },
-                },
-                "required": ["file_path"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "list_functions",
-            "description": "列出文件中所有的函数名",
-            "parameters":  {
-                "type": "object",
-                "properties": {
-                    "file_path": {
-                        "type": "string",
-                        "description": "文件路径",
-                    },
-                },
-                "required": ["file_path"]
-            }
-        }
-    }
-]
-@tool
-def count_lines(file_path) -> int:
-    """统计文件行数"""
-    with open(file_path) as file:
-        return len(file.readlines())
+
+LINTER_CONFIG = {
+    "python": {"cmd": ["python3", "-m", "flake8", "--max-line-length=120"], "ext": ".py"},
+    "javascript": {"cmd": ["eslint"], "ext": ".js"},
+    "typescript": {"cmd": ["eslint"], "ext": ".ts"},
+}
+
 
 @tool
-def list_functions(file_path) -> list[str]:
-    """列出文件中所有的函数名"""
-    with open(file_path) as file:
-        function_lines = []
-        for line in file:
-            line_data = line.strip()
-            if line_data.startswith("def "):
-                function_lines.append(line_data[4: line_data.find("(")])
-        return function_lines
+def run_lint(code: str, language: str) -> str:
+    """对代码运行静态检查工具. language支持: python, javascript, typescript"""
+    print(f"zmj run_lint called, language: {language}")
+    config = LINTER_CONFIG.get(language)
+    if not config:
+        return f"不支持{language}的lint检查"
+    with tempfile.NamedTemporaryFile(mode="w", suffix=config["ext"], delete=False) as f:
+        f.write(code)
+        f.flush()
+        try:
+            result = subprocess.run(
+                config["cmd"] + [f.name],
+                capture_output=True, text=True, timeout=10
+            )
+            output = result.stdout or result.stderr
+            return output.strip() if output.strip() else "检查通过, 无问题"
+        except subprocess.TimeoutExpired:
+            return "检查超时"
+        except FileNotFoundError:
+            return f"{config['cmd'][0]}未安装"
